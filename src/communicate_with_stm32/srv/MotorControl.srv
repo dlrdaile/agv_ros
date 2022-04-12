@@ -1,0 +1,7 @@
+uint8 cmd
+bool Key
+uint16 Period
+---
+bool success
+float32[4] data
+time time

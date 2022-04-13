@@ -1,0 +1,6 @@
+battery_isopen: true
+encoder_isopen: true
+press_isopen: false
+battery_freq: 5000
+encoder_freq: 100
+press_freq: 1000

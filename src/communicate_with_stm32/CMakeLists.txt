@@ -51,19 +51,17 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   MotorCmd.msg
-  MotorData.msg
-  AveInfo.msg
-  IncInfo.msg
   BatteryInfo.msg
-  PowerCalc.msg
-  # Message1.msg
-  # Message2.msg
+  Pressinfo.msg
+  Encoderinfo.msg
+  InitConfig.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
   MotorControl.srv
+  InitMotor.srv
 )
 
 ## Generate actions in the 'action' folder

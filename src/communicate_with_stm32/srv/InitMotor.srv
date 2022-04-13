@@ -1,0 +1,5 @@
+---
+bool success
+communicate_with_stm32/InitConfig battery_config
+communicate_with_stm32/InitConfig encoder_config
+communicate_with_stm32/InitConfig press_config

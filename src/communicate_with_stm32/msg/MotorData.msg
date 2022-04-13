@@ -1,3 +1,0 @@
-communicate_with_stm32/AveInfo aveInfo
-float32[4] set_speed
-communicate_with_stm32/BatteryInfo batteryInfo

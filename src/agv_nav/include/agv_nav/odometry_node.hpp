@@ -2,103 +2,186 @@
 #include <nav_msgs/Odometry.h>
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "communicate_with_stm32/MotorData.h"
+#include "geometry_msgs/Twist.h"
+#include "communicate_with_stm32/Encoderinfo.h"
 #include "agv_nav/mecumnamu.h"
 #include "cmath"
-
-class odeometry_node
+class odometry_node
 {
 public:
-    odeometry_node(ros::NodeHandle &nh, mecumnamu &m) : _nh(nh), my_car(m)
+    odometry_node(ros::NodeHandle *nh) : _nh(nh), isfirst(true)
     {
+        this->coef = 0.00010397;
+        this->intercept = -0.000335;
+        this->a = 0.134; // m/s
+        this->b = 0.135; // m/s
+        my_car = new mecumnamu(this->a, this->b);
         initializePublisher();
         initializeSubscribers();
         odom_msg.header.frame_id = "odom";
         odom_msg.child_frame_id = "base_footprint";
+        this->thre = 6000 * this->coef + this->intercept;
     }
-    ~odeometry_node() {}
+    ~odometry_node()
+    {
+        if (my_car != NULL)
+        {
+            delete my_car;
+            my_car = NULL;
+        }
+    }
 
-private:
+public:
+    void cmdVelCallback(const geometry_msgs::Twist &msg)
+    {
+        this->cmd_center_speed[0] = msg.linear.x;
+        this->cmd_center_speed[1] = msg.linear.y;
+        this->cmd_center_speed[2] = msg.angular.z;
+        this->my_car->center2wheel(this->cmd_wheel_speed, this->cmd_center_speed);
+        ROS_INFO("re:cmd_wheel_speed:%f,%f,%f,%f\n", this->cmd_wheel_speed[0], this->cmd_wheel_speed[1], this->cmd_wheel_speed[2],
+                 this->cmd_wheel_speed[3]);
+    }
+
+    void motorStateCallback(const communicate_with_stm32::Encoderinfo &msg)
+
+    {
+        if (this->isfirst)
+        {
+            this->isfirst = false;
+            this->last_time = msg.header.stamp;
+            for (int i = 0; i < 4; i++)
+            {
+                this->last_encoder[i] = msg.encoderData[i];
+            }
+            this->x = 0;
+            this->y = 0;
+            this->yaw = 0;
+        }
+        else
+        {
+            this->current_time = msg.header.stamp;
+            this->duration_time = this->current_time - this->last_time;
+            float dura = this->duration_time.toSec();
+            for (int i = 0; i < 4; i++)
+            {
+                this->current_encoder[i] = msg.encoderData[i];
+                this->wheel_speed[i] = (this->current_encoder[i] - this->last_encoder[i]) / dura * this->coef;
+            }
+            this->my_car->wheel2center(this->wheel_speed, this->center_speed);
+            if (this->check_receive_data())
+            {
+                float dx, dy, dyaw;
+                dx = this->center_speed[0] * dura;
+                dy = this->center_speed[1] * dura;
+                dyaw = this->center_speed[2] * dura;
+                this->yaw += dyaw;
+                this->yaw = (this->yaw > M_PI) ? (this->yaw - 2 * M_PI) : ((this->yaw < -M_PI) ? (this->yaw + 2 * M_PI) : this->yaw);
+                x += (dx * cos(this->yaw) - dy * sin(this->yaw));
+                y += (dx * sin(this->yaw) + dy * cos(this->yaw));
+                odom_msg.pose.pose.position.x = x;
+                odom_msg.pose.pose.position.y = y;
+                odom_msg.pose.pose.position.z = 0;
+                static tf2::Quaternion qtn;
+                qtn.setRPY(0, 0, this->yaw);
+                odom_msg.pose.pose.orientation.x = qtn.getX();
+                odom_msg.pose.pose.orientation.y = qtn.getY();
+                odom_msg.pose.pose.orientation.z = qtn.getZ();
+                odom_msg.pose.pose.orientation.w = qtn.getW();
+                odom_msg.header.stamp = this->current_time;
+                odom_msg.twist.twist.linear.x = this->center_speed[0];
+                odom_msg.twist.twist.linear.y = this->center_speed[1];
+                odom_msg.twist.twist.angular.z = this->center_speed[2];
+
+                geometry_msgs::TransformStamped ts;
+                ts.header = odom_msg.header;
+                ts.child_frame_id = "base_footprint";
+                ts.transform.translation.x = odom_msg.pose.pose.position.x;
+                ts.transform.translation.y = odom_msg.pose.pose.position.y;
+                ts.transform.translation.z = 0;
+                ts.transform.rotation.x = qtn.getX();
+                ts.transform.rotation.y = qtn.getY();
+                ts.transform.rotation.z = qtn.getZ();
+                ts.transform.rotation.w = qtn.getW();
+                this->tf_pub.sendTransform(ts);
+                this->odeometry_pub.publish(odom_msg);
+            }
+            else
+            {
+                ROS_ERROR("odom say:receive a error encoder!");
+            }
+            this->last_time = this->current_time;
+            for (int i = 0; i < 4; i++)
+            {
+                this->last_encoder[i] = this->current_encoder[i];
+            }
+        }
+    }
     void initializeSubscribers()
     {
-        this->motor_sub = this->_nh.subscribe("motorState", 10, odeometry_node::motorStateCallback, this);
+        this->motor_sub = this->_nh->subscribe("encoderInfo", 100, &odometry_node::motorStateCallback, this);
+        // this->cmd_vel_sub = this->_nh->subscribe("cmd_vel", 10, &odometry_node::cmdVelCallback, this);
     }
     void initializePublisher()
     {
-        this->odeometry_pub = this->_nh.advertise<nav_msgs::Odometry>("odom", 100);
-        // this->battery_pub = this->_nh.advertise<>()
-    }
-    void motorStateCallback(const communicate_with_stm32::MotorData &msg)
-    {
-        float wheel_speed[4];
-        float center_speed[3];
-        float dx,dy,dz;
-        static tf2_ros::TransformBroadcaster tf_pub;
-        static bool flag = false;
-        if(!flag)
-        {
-            if(msg.aveInfo.duration != 0)
-            {
-                this->last_time = msg.aveInfo.time;
-                flag = true;
-            }
-            return;
-        }
-
-        this->current_time = msg.aveInfo.time;
-        odom_msg.header.stamp = this->current_time;
-        for (size_t i = 0; i < 4; i++)
-        {
-            //todo:写一个数据校验的功能
-            wheel_speed[i] = msg.aveInfo.encoderData[i] / msg.aveInfo.duration * 1000 * this->coef + this->intercept;
-        }
-        this->my_car.wheel2center(wheel_speed, center_speed);
-        odom_msg.twist.twist.linear.x = center_speed[0];
-        odom_msg.twist.twist.linear.y = center_speed[1];
-        odom_msg.twist.twist.angular.z = center_speed[2];
-        ros::Duration delta_time = this->current_time - this->last_time;
-        dx = delta_time.toSec() * center_speed[0];
-        dy = delta_time.toSec() * center_speed[1];
-        dz = delta_time.toSec() * center_speed[2];
-
-        yaw += dz;
-        yaw = (yaw > M_PI) ? (yaw - 2*M_PI) : ((yaw < -M_PI) ? (yaw + 2*M_PI) : yaw);
-        odom_msg.pose.pose.position.x -= dx*cos(yaw)+dy*sin(yaw);
-        odom_msg.pose.pose.position.y += dx*sin(yaw)-dy*cos(yaw);
-
-        static tf2::Quaternion qtn;
-        qtn.setRPY(0,0,yaw);
-        odom_msg.pose.pose.orientation.x = qtn.getX();
-        odom_msg.pose.pose.orientation.y = qtn.getY();
-        odom_msg.pose.pose.orientation.z = qtn.getZ();
-        odom_msg.pose.pose.orientation.w = qtn.getW();
-
-        geometry_msgs::TransformStamped ts;
-        ts.child_frame_id = "base_footprint";
-        ts.header.frame_id = "odom";
-        ts.header.stamp = this->current_time;
-        ts.transform.translation.x = odom_msg.pose.pose.position.x;
-        ts.transform.translation.y = odom_msg.pose.pose.position.y;
-        ts.transform.translation.z = 0;
-        ts.transform.rotation.x = qtn.getX();
-        ts.transform.rotation.y = qtn.getY();
-        ts.transform.rotation.z = qtn.getZ();
-        ts.transform.rotation.w = qtn.getW();
-        tf_pub.sendTransform(ts);
-        this->odeometry_pub.publish(odom_msg);
-        this->last_time = this->current_time;
+        this->odeometry_pub = this->_nh->advertise<nav_msgs::Odometry>("odom", 100);
     }
 
 private:
-    ros::NodeHandle &_nh;
+    bool check_receive_data()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (abs(this->wheel_speed[i]) >= this->thre)
+            {
+                ROS_ERROR("to big");
+                ROS_ERROR("negative");
+                ROS_INFO("wheel_speed:%f,%f,%f,%f\n", this->wheel_speed[0], this->wheel_speed[1], this->wheel_speed[2],
+                         this->wheel_speed[3]);
+                ROS_INFO("cmd_wheel_speed:%f,%f,%f,%f\n", this->cmd_wheel_speed[0], this->cmd_wheel_speed[1], this->cmd_wheel_speed[2],
+                         this->cmd_wheel_speed[3]);
+                ROS_INFO("center_speed:%f,%f,%f\n", this->center_speed[0], this->center_speed[1], this->center_speed[2]);
+                ROS_INFO("cmd_center_speed:%f,%f,%f\n", this->cmd_center_speed[0], this->cmd_center_speed[1], this->cmd_center_speed[2]);
+                return false;
+            }
+            // if (((this->wheel_speed[i] * this->cmd_wheel_speed[i]) < 0) && (abs(this->wheel_speed[i]) >= 0.01))
+            // {
+            //     ROS_ERROR("negative");
+            //     ROS_INFO("wheel_speed:%f,%f,%f,%f\n", this->wheel_speed[0], this->wheel_speed[1], this->wheel_speed[2],
+            //              this->wheel_speed[3]);
+            //     ROS_INFO("cmd_wheel_speed:%f,%f,%f,%f\n", this->cmd_wheel_speed[0], this->cmd_wheel_speed[1], this->cmd_wheel_speed[2],
+            //              this->cmd_wheel_speed[3]);
+            //     ROS_INFO("center_speed:%f,%f,%f\n", this->center_speed[0], this->center_speed[1], this->center_speed[2]);
+            //     ROS_INFO("cmd_center_speed:%f,%f,%f\n", this->cmd_center_speed[0], this->cmd_center_speed[1], this->cmd_center_speed[2]);
+            //     return false;
+            // }
+        }
+        return true;
+    }
+
+private:
+    ros::NodeHandle *_nh;
     ros::Subscriber motor_sub;
     ros::Publisher odeometry_pub;
-    ros::Publisher battery_pub;
+    ros::Subscriber cmd_vel_sub;
+    tf2_ros::TransformBroadcaster tf_pub;
+
     nav_msgs::Odometry odom_msg;
-    ros::Time last_time;
-    ros::Time current_time;
-    mecumnamu &my_car;
-    float yaw;
-    const float coef = 0.00010397;
-    const float intercept = -0.000335;
+    mecumnamu *my_car;
+
+    bool isfirst;
+    float yaw, x, y;
+    int last_encoder[4], current_encoder[4];
+
+    float wheel_speed[4];
+    float center_speed[3];
+    float cmd_wheel_speed[4];
+    float cmd_center_speed[3];
+    float thre;
+
+    ros::Time last_time, current_time;
+    ros::Duration duration_time;
+    float coef;
+    float intercept;
+    float a;
+    float b;
 };

@@ -15,7 +15,7 @@ private:
     void sub_tele_cb(const geometry_msgs::TwistConstPtr &msg);
 public:
     demo_node(){
-        cmd_sub = nh.subscribe<geometry_msgs::Twist>("/cmd_vel",10,&demo_node::sub_tele_cb,this);
+        cmd_sub = nh.subscribe<geometry_msgs::Twist>("cmd_vel",10,&demo_node::sub_tele_cb,this);
         car_cmd_pub = nh.advertise<communicate_with_stm32::MotorCmd>("stm32TopicCtrl", 10,true);
     }
 };

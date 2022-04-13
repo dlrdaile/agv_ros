@@ -23,7 +23,7 @@ bool doInit(communicate_with_stm32::InitMotor::Request &request,
     response.press_config.isOpen = ros::param::param("~press_isopen",false);
     response.press_config.freq = ros::param::param("~press_freq",1000);
     response.success = true;
-    visit_time++;
+    // visit_time++;
     return true;
 }
 int main(int argc, char **argv)
@@ -40,17 +40,17 @@ int main(int argc, char **argv)
     // 5.处理请求并产生响应
     // 6.spin()
     ros::Rate rate(10);
-    while (ros::ok())
-    {
-        if(visit_time!=0)
-        {
-            ros::param::del("initServer");
-            ROS_INFO("goodbye!");
-            ros::shutdown();
-        }
-        ros::spinOnce();
-        rate.sleep();
-    }
+    // while (ros::ok())
+    // {
+    //     if(visit_time!=0)
+    //     {
+    //         ros::param::del("initServer");
+    //         ROS_INFO("goodbye!");
+    //         ros::shutdown();
+    //     }
+    //     ros::spinOnce();
+    //     rate.sleep();
+    // }
     ros::spin();
     
     return 0;

@@ -21,7 +21,7 @@ public:
 };
 
 void demo_node::sub_tele_cb(const geometry_msgs::TwistConstPtr &msg){
-    mcl.cmd = 11;
+    mcl.cmd = 6;
     mcl.isUrgent = true;
     mcl.data[0] = msg->linear.x * 1000;
     mcl.data[1] = msg->linear.y * 1000;

@@ -9,6 +9,7 @@
     <node pkg="wit_ros_imu" type="wit_$(arg type)_ros.py" name="imu" output="screen">
         <param name="port"               type = "str"    value="/dev/ttyUSB0"/>
         <param name="baud"               type = "int"    value="115200"/>
+        <remap from="/wit/imu" to="/imu"/>
     </node>
 
     <!-- 打开 3d 模型 -->

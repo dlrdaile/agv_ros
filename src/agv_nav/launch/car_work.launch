@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="use_imu" default="true"/>
+    <arg name="use_laser" default="true"/>
+    <arg name="use_odom" default="true"/>
+    <arg name="use_ekf" default="false"/>
+    <param name="use_ekf" value="$(arg use_ekf)"/>
+    
+    <!-- 一、配置传感器 -->
+    <!-- 1、雷达 -->
+    <include if="$(arg use_laser)" file="$(find ydlidar_ros_driver)/launch/lidar.launch"/>
+    <!-- 2、IMU -->
+    <include if="$(arg use_imu)" file="$(find wit_ros_imu)/launch/wit_imu.launch"/>
+    <!-- 3、里程计 -->
+    <node if="$(arg use_odom)" name="odom_node" pkg="agv_nav" type="odometry_node" output="screen"/>
+    <!-- 二、加载模型，并打开rviz，发布坐标信息 -->
+    <include file="$(find robot_description)/launch/display.launch"/>
+    <!-- 三、加载导航功能包 -->
+    <node if="$(arg use_ekf)" pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+        <param name="output_frame" value="odom"/>
+        <param name="base_footprint_frame" value="base_footprint"/>
+        <param name="freq" value="10.0"/>
+        <param name="sensor_timeout" value="1.0"/>
+        <param name="odom_used" value="(arg use_odom)"/>
+        <param name="imu_used" value="$(arg use_imu)"/>
+        <param name="vo_used" value="false"/>
+        <param name="debug" value="false"/>
+        <param name="self_diagnose" value="false"/>
+        <remap from="imu_data" to="imu"/>
+        <remap from="odom" to="odom2ekf"/>
+        
+    </node>
+    <!-- <include file="$(find cartographer_ros)/launch/my_robot_2d.launch"/> -->
+    <!-- <include file="$(find agv_nav)/launch/move_base.launch" /> -->
+    <include file="$(find agv_nav)/launch/nav05_work.launch"/>
+
+</launch>

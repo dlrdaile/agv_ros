@@ -14,7 +14,7 @@ def callback(data):
 
 def get_imu():
     rospy.init_node('get_imu', anonymous=True)
-    rospy.Subscriber("/wit/imu", Imu, callback) #接受topic名称
+    rospy.Subscriber("imu", Imu, callback) #接受topic名称
     rospy.spin()
 
 if __name__ == '__main__':

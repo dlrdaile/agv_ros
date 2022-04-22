@@ -6,6 +6,7 @@
 #include "communicate_with_stm32/Encoderinfo.h"
 #include "agv_nav/mecumnamu.h"
 #include "cmath"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
 class odometry_node
 {
 public:
@@ -16,10 +17,24 @@ public:
         this->a = 0.134; // m/s
         this->b = 0.135; // m/s
         my_car = new mecumnamu(this->a, this->b);
+        this->use_ekf = ros::param::param("use_ekf", false);
+        // this->use_ekf = true;
         initializePublisher();
         initializeSubscribers();
         odom_msg.header.frame_id = "odom";
         odom_msg.child_frame_id = "base_footprint";
+        odom_msg.pose.covariance[0] = 1e-3;
+        odom_msg.pose.covariance[7] = 1e-3;
+        odom_msg.pose.covariance[14] = 1e6;
+        odom_msg.pose.covariance[21] = 1e6;
+        odom_msg.pose.covariance[28] = 1e6;
+        odom_msg.pose.covariance[35] = 1e3;
+        odom_msg.twist.covariance[0] = 1e-3;
+        odom_msg.twist.covariance[7] = 1e-3;
+        odom_msg.twist.covariance[14] = 1e6;
+        odom_msg.twist.covariance[21] = 1e6;
+        odom_msg.twist.covariance[28] = 1e6;
+        odom_msg.twist.covariance[35] = 1e3;
         this->thre = 6000 * this->coef + this->intercept;
     }
     ~odometry_node()
@@ -43,7 +58,6 @@ public:
     }
 
     void motorStateCallback(const communicate_with_stm32::Encoderinfo &msg)
-
     {
         if (this->isfirst)
         {
@@ -91,19 +105,25 @@ public:
                 odom_msg.twist.twist.linear.x = this->center_speed[0];
                 odom_msg.twist.twist.linear.y = this->center_speed[1];
                 odom_msg.twist.twist.angular.z = this->center_speed[2];
-
-                geometry_msgs::TransformStamped ts;
-                ts.header = odom_msg.header;
-                ts.child_frame_id = "base_footprint";
-                ts.transform.translation.x = odom_msg.pose.pose.position.x;
-                ts.transform.translation.y = odom_msg.pose.pose.position.y;
-                ts.transform.translation.z = 0;
-                ts.transform.rotation.x = qtn.getX();
-                ts.transform.rotation.y = qtn.getY();
-                ts.transform.rotation.z = qtn.getZ();
-                ts.transform.rotation.w = qtn.getW();
-                this->tf_pub.sendTransform(ts);
-                this->odeometry_pub.publish(odom_msg);
+                if (!this->use_ekf)
+                {
+                    geometry_msgs::TransformStamped ts;
+                    ts.header = odom_msg.header;
+                    ts.child_frame_id = "base_footprint";
+                    ts.transform.translation.x = odom_msg.pose.pose.position.x;
+                    ts.transform.translation.y = odom_msg.pose.pose.position.y;
+                    ts.transform.translation.z = 0;
+                    ts.transform.rotation.x = qtn.getX();
+                    ts.transform.rotation.y = qtn.getY();
+                    ts.transform.rotation.z = qtn.getZ();
+                    ts.transform.rotation.w = qtn.getW();
+                    this->tf_pub.sendTransform(ts);
+                    this->odeometry_pub.publish(odom_msg);
+                }
+                else
+                {
+                    this->odom2ekf_pub.publish(odom_msg);
+                }
             }
             else
             {
@@ -116,14 +136,32 @@ public:
             }
         }
     }
+
+    void ekfOdomCallback(const geometry_msgs::PoseWithCovarianceStamped &msg)
+    {
+        static nav_msgs::Odometry ekf_odom;
+        ekf_odom.header = msg.header;
+        ekf_odom.child_frame_id = this->odom_msg.child_frame_id;
+        ekf_odom.twist = this->odom_msg.twist;
+        ekf_odom.pose.covariance = msg.pose.covariance;
+        ekf_odom.pose.pose.position = msg.pose.pose.position;
+        ekf_odom.pose.pose.orientation = msg.pose.pose.orientation;
+        this->odeometry_pub.publish(ekf_odom);
+    }
     void initializeSubscribers()
     {
         this->motor_sub = this->_nh->subscribe("encoderInfo", 100, &odometry_node::motorStateCallback, this);
+        if (use_ekf)
+        {
+            this->odom_tf_sub = this->_nh->subscribe("robot_pose_ekf/odom_combined", 100, &odometry_node::ekfOdomCallback, this);
+        }
         // this->cmd_vel_sub = this->_nh->subscribe("cmd_vel", 10, &odometry_node::cmdVelCallback, this);
     }
     void initializePublisher()
     {
         this->odeometry_pub = this->_nh->advertise<nav_msgs::Odometry>("odom", 100);
+        if (this->use_ekf)
+            this->odom2ekf_pub = this->_nh->advertise<nav_msgs::Odometry>("odom2ekf", 100);
     }
 
 private:
@@ -162,7 +200,9 @@ private:
     ros::NodeHandle *_nh;
     ros::Subscriber motor_sub;
     ros::Publisher odeometry_pub;
+    ros::Publisher odom2ekf_pub;
     ros::Subscriber cmd_vel_sub;
+    ros::Subscriber odom_tf_sub;
     tf2_ros::TransformBroadcaster tf_pub;
 
     nav_msgs::Odometry odom_msg;
@@ -184,4 +224,5 @@ private:
     float intercept;
     float a;
     float b;
+    bool use_ekf;
 };

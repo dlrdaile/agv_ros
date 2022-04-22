@@ -1,0 +1,8 @@
+<launch>
+    <!-- 启动AMCL节点 -->
+    <include file="$(find agv_nav)/launch/amcl.launch" />
+
+    <!-- 运行move_base节点 -->
+    <include file="$(find agv_nav)/launch/move_base.launch" />
+
+</launch>

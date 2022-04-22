@@ -56,9 +56,9 @@ if __name__ == "__main__":
         rospy.loginfo("\033[31mport open failed\033[0m")
         exit(0)
     else:
-        imu_pub = rospy.Publisher("wit/imu", Imu, queue_size=10)
-        mag_pub = rospy.Publisher("wit/mag", MagneticField, queue_size=10)
-        tf_pub = tf2_ros.TransformBroadcaster()
+        imu_pub = rospy.Publisher("imu", Imu, queue_size=10)
+        # mag_pub = rospy.Publisher("mag", MagneticField, queue_size=10)
+        # tf_pub = tf2_ros.TransformBroadcaster()
 
         master = modbus_rtu.RtuMaster(wt_imu)
         master.set_timeout(1)
@@ -84,14 +84,15 @@ if __name__ == "__main__":
                 angularVelocity = [v[i] / 32768.0 * 2000 * math.pi / 180 for i in range(3, 6)]
                 magnetometer = v[6:9]
                 angle_degree = [v[i] / 32768.0 * 180 for i in range(9, 12)]
-                print(angle_degree)
+                # print(angle_degree)
                 stamp = rospy.get_rostime()
 
                 imu_msg.header.stamp = stamp
-                imu_msg.header.frame_id = "base_footprint"
+                imu_msg.header.frame_id = "imu_link"
 
                 mag_msg.header.stamp = stamp
-                mag_msg.header.frame_id = "base_footprint"
+                mag_msg.header.frame_id = "imu_link"
+                # mag_msg.header.frame_id = "base_footprint"
 
                 tfs.header.stamp = stamp
                 tfs.header.frame_id = "imu_odom"
@@ -127,7 +128,7 @@ if __name__ == "__main__":
                 tfs.transform.rotation.w = qua[3]
 
                 imu_pub.publish(imu_msg)
-                mag_pub.publish(mag_msg)
-                tf_pub.sendTransform(tfs)
+                # mag_pub.publish(mag_msg)
+                # tf_pub.sendTransform(tfs)
            
 

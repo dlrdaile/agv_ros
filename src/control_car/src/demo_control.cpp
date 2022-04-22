@@ -23,9 +23,9 @@ public:
 void demo_node::sub_tele_cb(const geometry_msgs::TwistConstPtr &msg){
     mcl.cmd = 6;
     mcl.isUrgent = true;
-    mcl.data[0] = msg->linear.x * 1000;
-    mcl.data[1] = msg->linear.y * 1000;
-    mcl.data[2] = msg->angular.z * 1000;
+    mcl.data[0] = msg->linear.x * 10000;
+    mcl.data[1] = msg->linear.y * 10000;
+    mcl.data[2] = msg->angular.z * 10000;
     mcl.data[3] = 0;
     car_cmd_pub.publish(mcl);
 }

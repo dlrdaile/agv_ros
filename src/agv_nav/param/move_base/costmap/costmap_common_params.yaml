@@ -42,7 +42,7 @@ obstacle_layer:
 global_inflation_layer:
   enabled: true # 是否使能全局膨胀层；
   cost_scaling_factor: 5.0 # 膨胀层的指数衰减速度，值越小衰减越慢(default: 10)；
-  inflation_radius: 0.5 # 全局最大有效膨胀半径，即安装指数衰减扩张的最大半径，计算障碍物cos函数时使用。
+  inflation_radius: 0.4 # 全局最大有效膨胀半径，即安装指数衰减扩张的最大半径，计算障碍物cos函数时使用。
 # 局部膨胀层参数配置
 local_inflation_layer:
   enabled: true # 是否使能局部膨胀层；

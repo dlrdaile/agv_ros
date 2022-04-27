@@ -1,0 +1,6 @@
+image: /home/agv/Desktop/ros/ws/stm32_ws/src/agv_nav/map/306outdoor.pgm
+resolution: 0.05
+origin: [-15.5203, -13.856, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196

@@ -1,0 +1,6 @@
+image: /home/agv/Desktop/ros/ws/stm32_ws/src/agv_nav/map/3floor.pgm
+resolution: 0.05
+origin: [-41.4464, -27.7123, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196

@@ -3,7 +3,7 @@
     <arg name="use_imu" default="true"/>
     <arg name="use_laser" default="true"/>
     <arg name="use_odom" default="true"/>
-    <arg name="use_ekf" default="false"/>
+    <arg name="use_ekf" default="true"/>
     <param name="use_ekf" value="$(arg use_ekf)"/>
     
     <!-- 一、配置传感器 -->
@@ -28,10 +28,12 @@
         <param name="self_diagnose" value="false"/>
         <remap from="imu_data" to="imu"/>
         <remap from="odom" to="odom2ekf"/>
-        
     </node>
+    <!-- 动态地图生成 -->
     <!-- <include file="$(find cartographer_ros)/launch/my_robot_2d.launch"/> -->
     <!-- <include file="$(find agv_nav)/launch/move_base.launch" /> -->
-    <include file="$(find agv_nav)/launch/nav05_work.launch"/>
+    <!-- 静态地图展示 -->
+    <!-- <include file="$(find agv_nav)/launch/nav05_work.launch"/> -->
+    <include file="$(find agv_nav)/launch/nav06_slam_auto.launch"/>
 
 </launch>

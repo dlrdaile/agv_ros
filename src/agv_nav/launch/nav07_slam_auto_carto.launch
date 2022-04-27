@@ -1,0 +1,8 @@
+<!-- 实现SLAM与导航，实现机器人自主移动的地图构建 -->
+<launch>
+    <!-- 1、SLAM实现 -->
+    <include file="$(find cartographer_ros)/launch/my_robot_2d.launch" />
+    <!-- 2、导航中的move_base -->
+    <include file="$(find robot_nav)/launch/move_base.launch" />
+
+</launch>

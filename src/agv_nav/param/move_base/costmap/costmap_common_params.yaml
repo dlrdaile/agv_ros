@@ -15,7 +15,7 @@ obstacle_layer:
   mark_threshold: 0
   combination_method: 1
   track_unknown_space: true # true 禁止全局路径规划穿越未知区域；
-  obstacle_range: 2.0 # 添加障碍物范围，一方面考虑激光范围，另外范围越大越耗计算资源；
+  obstacle_range: 1.5 # 添加障碍物范围，一方面考虑激光范围，另外范围越大越耗计算资源；
   raytrace_range: 3.5 # 清除障碍物范围；
   publish_voxel_map: false
   observation_sources: scan # 数据源；
@@ -37,12 +37,12 @@ obstacle_layer:
     clearing: true # 是否根据scan清除障碍物；
     min_obstacle_height: 0.0 # scan检测到的最小有效障碍物高度；
     max_obstacle_height: 2.0 # scan检测到的最大有效障碍物高度；
-    inf_is_valid: true # scan的无穷远数据是否有效；
+    inf_is_valid: false # scan的无穷远数据是否有效；
 # 全局膨胀层参数配置
 global_inflation_layer:
   enabled: true # 是否使能全局膨胀层；
   cost_scaling_factor: 5.0 # 膨胀层的指数衰减速度，值越小衰减越慢(default: 10)；
-  inflation_radius: 0.4 # 全局最大有效膨胀半径，即安装指数衰减扩张的最大半径，计算障碍物cos函数时使用。
+  inflation_radius: 0.55 # 全局最大有效膨胀半径，即安装指数衰减扩张的最大半径，计算障碍物cos函数时使用。
 # 局部膨胀层参数配置
 local_inflation_layer:
   enabled: true # 是否使能局部膨胀层；

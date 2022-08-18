@@ -1,0 +1,7 @@
+uint8 taskId
+---
+uint8 FINISH=1
+uint8 PAUSE=2
+uint8 FAIL=3
+uint8 final_status
+---

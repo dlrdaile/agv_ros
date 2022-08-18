@@ -16,11 +16,11 @@
 #   #代价比例系数，越大则代价值越小
 #   cost_scaling_factor: 3.0
 local_costmap:
-   global_frame: odom
+   global_frame: map
    robot_base_frame: base_footprint
    update_frequency: 10.0
    publish_frequency: 10.0
-   static_map: false
+   static_map: true
    rolling_window: true
    width: 3.0
    height: 3.0

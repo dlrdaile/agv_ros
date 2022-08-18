@@ -19,6 +19,9 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   map_server
   communicate_with_stm32
+  message_generation
+  actionlib
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -55,31 +58,31 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  useSensorStatus.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
-#   Service1.srv
-#   Service2.srv
+#   SetTask.srv
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  FILES
+  TaskList.action
+  MoveSet.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  std_msgs
+  actionlib_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -113,7 +116,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES agv_nav
-#  CATKIN_DEPENDS amcl geometry_msgs gmapping move_base roscpp rospy std_msgs tf2 tf2_ros
+ CATKIN_DEPENDS amcl geometry_msgs gmapping move_base roscpp rospy std_msgs tf2 tf2_ros message_runtime actionlib actionlib_msgs
 #  DEPENDS system_lib
 )
 
@@ -134,6 +137,11 @@ add_library(mecummamu
   include/${PROJECT_NAME}/mecumnamu.h
 )
 
+add_library(multi_goals_nav
+  src/${PROJECT_NAME}/multi_goals_nav.cpp
+  include/${PROJECT_NAME}/multi_goals_nav.h
+)
+
 include_directories(${mecummamu_INCLUDE_DIRS})
 
 ## Add cmake target dependencies of the library
@@ -145,6 +153,7 @@ include_directories(${mecummamu_INCLUDE_DIRS})
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(odometry_node src/odometry_node.cpp)
+add_executable(multi_goals_node src/multi_goals_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -155,6 +164,7 @@ add_executable(odometry_node src/odometry_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(odometry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(multi_goals_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(odometry_node
@@ -162,6 +172,13 @@ target_link_libraries(odometry_node
 )
 target_link_libraries(odometry_node
   mecummamu
+)
+
+target_link_libraries(multi_goals_node
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(multi_goals_node
+  multi_goals_nav
 )
 
 #############
@@ -173,10 +190,11 @@ target_link_libraries(odometry_node
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  scripts/multi_goals_client.py
+  scripts/pub_sensor_status.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

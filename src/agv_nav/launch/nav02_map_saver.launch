@@ -1,4 +1,4 @@
 <launch>
-    <arg name="my_map" value="$(find agv_nav)/map/306_gmapping" />
+    <arg name="my_map" value="$(find agv_nav)/map/1floor" />
     <node name="map_save" pkg="map_server" type="map_saver" args="-f $(arg my_map)" />
 </launch>

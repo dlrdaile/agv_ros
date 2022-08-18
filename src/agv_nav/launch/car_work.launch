@@ -3,6 +3,7 @@
     <arg name="use_imu" default="true"/>
     <arg name="use_laser" default="true"/>
     <arg name="use_odom" default="true"/>
+    <arg name="use_camera" default="true"/>
     <arg name="use_ekf" default="true"/>
     <param name="use_ekf" value="$(arg use_ekf)"/>
     
@@ -13,6 +14,8 @@
     <include if="$(arg use_imu)" file="$(find wit_ros_imu)/launch/wit_imu.launch"/>
     <!-- 3、里程计 -->
     <node if="$(arg use_odom)" name="odom_node" pkg="agv_nav" type="odometry_node" output="screen"/>
+    <!-- 4、摄像头 -->
+    <include if="$(arg use_camera)" file="$(find zed_cpu_ros)/launch/zed_cpu_ros.launch"/>
     <!-- 二、加载模型，并打开rviz，发布坐标信息 -->
     <include file="$(find robot_description)/launch/display.launch"/>
     <!-- 三、加载导航功能包 -->
@@ -25,15 +28,14 @@
         <param name="imu_used" value="$(arg use_imu)"/>
         <param name="vo_used" value="false"/>
         <param name="debug" value="false"/>
-        <param name="self_diagnose" value="false"/>
+        <param name="self_diagnose" value="true"/>
         <remap from="imu_data" to="imu"/>
         <remap from="odom" to="odom2ekf"/>
     </node>
     <!-- 动态地图生成 -->
-    <!-- <include file="$(find cartographer_ros)/launch/my_robot_2d.launch"/> -->
-    <!-- <include file="$(find agv_nav)/launch/move_base.launch" /> -->
+    <!-- <include file="$(find agv_nav)/launch/nav07_slam_auto_carto.launch"/> -->
+    <!-- <include file="$(find agv_nav)/launch/nav06_slam_auto.launch"/> -->
     <!-- 静态地图展示 -->
-    <!-- <include file="$(find agv_nav)/launch/nav05_work.launch"/> -->
-    <include file="$(find agv_nav)/launch/nav06_slam_auto.launch"/>
+    <include file="$(find agv_nav)/launch/nav05_work.launch"/>
 
 </launch>

@@ -1,22 +1,22 @@
 DWAPlannerROS:
   # Robot Configuration Parameters - Kobuki 机器人配置参数-Kobuki
-  max_vel_x: 0.52 # x方向最大线速度绝对值，单位：米
-  min_vel_x: 0.01 # x方向最小线速度绝对值，单位:米/秒。如果为负值表示可以后退.
+  max_vel_x: 0.45 # x方向最大线速度绝对值，单位：米
+  min_vel_x: -0.05 # x方向最小线速度绝对值，单位:米/秒。如果为负值表示可以后退.
 
-  max_vel_y: 0.1 # diff drive robot # y方向最大线速度绝对值，单位:米/秒。turtlebot为差分驱动机器人，所以为0
-  min_vel_y: -0.1 # diff drive robot # y方向最小线速度绝对值，单位:米/秒。turtlebot为差分驱动机器人，所以为0
+  max_vel_y: 0.0 # diff drive robot # y方向最大线速度绝对值，单位:米/秒。turtlebot为差分驱动机器人，所以为0
+  min_vel_y: 0.0 # diff drive robot # y方向最小线速度绝对值，单位:米/秒。turtlebot为差分驱动机器人，所以为0
 
-  max_vel_trans: 0.52 # 机器人最大平移速度的绝对值，单位为 m/s
+  max_vel_trans: 0.5 # 机器人最大平移速度的绝对值，单位为 m/s
   min_vel_trans: 0.01 # 器人最小平移速度的绝对值，单位为 m/s
   trans_stopped_vel: 0.05 # 机器人被认属于“停止”状态时的平移速度。如果机器人的速度低于该值，则认为机器人已停止。单位为 m/s
 # 注意不要将min_trans_vel设置为0，否则DWA认为平移速度不可忽略，将创建较小的旋转速度。
 
-  max_vel_theta: 1.3 # 机器人的最大旋转角速度的绝对值，单位为 rad/s
-  min_vel_theta: -1.3 # 机器人的最小旋转角速度的绝对值，单位为 rad/s
+  max_vel_theta: 0.6 # 机器人的最大旋转角速度的绝对值，单位为 rad/s
+  min_vel_theta: 0.02 # 机器人的最小旋转角速度的绝对值，单位为 rad/s
   theta_stopped_vel: 0.05 # 机器人被认属于“停止”状态时的旋转速度。单位为 rad/s
 
-  acc_lim_x: 0.8 # 机器人在x方向的极限加速度，单位meters/sec^2
-  acc_lim_theta: 0.8 # 机器人的极限旋转加速度，单位为rad/sec^2
+  acc_lim_x: 1 # 机器人在x方向的极限加速度，单位meters/sec^2
+  acc_lim_theta: 2 # 机器人的极限旋转加速度，单位为rad/sec^2
   acc_lim_y: 0.4 # diff drive robot 机器人在y方向的极限加速度，对于差分机器人来说当然是0
 
 
@@ -27,7 +27,9 @@ DWAPlannerROS:
 
 
 # Forward Simulation Parameters 正向仿真参数 注：参数的设置及影响讨论请参考《ROS导航功能调优指南》
-  sim_time: 2 # 前向模拟轨迹的时间，单位为s(seconds).7
+  sim_time: 1.5 # 前向模拟轨迹的时间，单位为s(seconds).7
+  angular_sim_granularity: 0.5
+  sim_granularity: 0.15
   vx_samples: 10 # x方向速度空间的采样点数.
   vy_samples: 10 # y方向速度空间采样点数 Tutulebot为差分驱动机器人，所以y方向永远只有1个值（0.0）
   vtheta_samples: 20 # 旋转方向的速度空间采样点数.
@@ -49,7 +51,7 @@ DWAPlannerROS:
   turn_round_scale: 1.0
 
 # Oscillation Prevention Parameters 防振参数
-  oscillation_reset_dist: 0.05 # 机器人必须运动多少米远后才能复位震荡标记(机器人运动多远距离才会重置振荡标记)
+  oscillation_reset_dist: 0.02 # 机器人必须运动多少米远后才能复位震荡标记(机器人运动多远距离才会重置振荡标记)
 
 # Debugging 调试参数
   publish_traj_pc : true # 将规划的轨迹在RVIZ上进行可视化

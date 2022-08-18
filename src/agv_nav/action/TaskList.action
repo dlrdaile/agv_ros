@@ -1,0 +1,19 @@
+geometry_msgs/PoseArray task_pose_list
+uint8[] move_id_set
+uint8 start_goal
+---
+time start_time
+time end_time
+time[] task_complete_time
+uint32 total_odom
+uint8[] task_final_status
+---
+uint8 WAITING=0
+uint8 ACTIVE=1
+uint8 SUCCEEDED=2
+uint8 FAIL=3
+uint8 PAUSE=4
+geometry_msgs/PoseStamped current_pose
+uint8[] task_status
+bool current_task_iswork
+string text

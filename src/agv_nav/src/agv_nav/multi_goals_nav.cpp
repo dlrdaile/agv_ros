@@ -24,8 +24,8 @@ namespace multi_goals_nav
         moveset_cancel_pub_ = nh_->advertise<actionlib_msgs::GoalID>("move_set_action/cancel", 1);
 
         marker_pub_ = nh_->advertise<visualization_msgs::Marker>("visualization_marker", 1);
-        this->moveSetClient_.waitForServer();
         as_.start();
+        // this->moveSetClient_.waitForServer();
     }
 
     // delete marks in the map
@@ -55,8 +55,8 @@ namespace multi_goals_nav
     {
         bool success = true;
         geometry_msgs::PoseStamped markpose;
-        this->initStatus();
         pose_array_.header.frame_id = markpose.header.frame_id = ptr->task_pose_list.header.frame_id;
+        this->initStatus();
         this->move_id_set_ = ptr->move_id_set;
         this->curGoalIdx_ = ptr->start_goal;
         for (auto &pose : ptr->task_pose_list.poses)
@@ -80,6 +80,8 @@ namespace multi_goals_nav
                 as_.setPreempted();
                 this->cancelNavi();
                 this->feedback_.task_status[this->curGoalIdx_-1] = this->feedback_.PAUSE;
+                this->feedback_.current_task_iswork = false;
+                as_.publishFeedback(this->feedback_);
                 this->permit_ = false;
                 success = false;
                 break;
@@ -184,12 +186,14 @@ namespace multi_goals_nav
     void MultiGoalsNav::completeNavi()
     {
         // TODO:完成动作节点的任务
-        this->feedback_.current_task_iswork = true;
-        this->move_set_goal.taskId = this->move_id_set_[this->curGoalIdx_-1];
-        this->moveSetClient_.sendGoal(this->move_set_goal);
-        this->moveSetClient_.waitForResult();
-        this->feedback_.current_task_iswork = false;
-
+        // 判断是否有动作服务器存在
+        if(this->moveSetClient_.isServerConnected()){
+            this->feedback_.current_task_iswork = true;
+            this->move_set_goal.taskId = this->move_id_set_[this->curGoalIdx_-1];
+            this->moveSetClient_.sendGoal(this->move_set_goal);
+            this->moveSetClient_.waitForResult();
+            this->feedback_.current_task_iswork = false;
+        }
         if (curGoalIdx_ < pose_array_.poses.size())
         {
             this->result_.task_complete_time.push_back(ros::Time::now());
@@ -233,6 +237,7 @@ namespace multi_goals_nav
             actionlib_msgs::GoalID moveset_goal_id;
             this->deleteMark();
             cancel_pub_.publish(cur_goalid_);
+            this->moveSetClient_.cancelGoal();
             this->moveset_cancel_pub_.publish(moveset_goal_id);
             ROS_ERROR("Navigation have been canceled");
         }

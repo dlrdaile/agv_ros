@@ -61,6 +61,9 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   useSensorStatus.msg
+  carStaticMsg.msg
+  SubTaskDesc.msg
+  carTaskStatus.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -82,6 +85,7 @@ generate_messages(
   geometry_msgs
   std_msgs
   actionlib_msgs
+  agv_nav
 )
 
 ################################################
@@ -193,6 +197,10 @@ target_link_libraries(multi_goals_node
 catkin_install_python(PROGRAMS
   scripts/multi_goals_client.py
   scripts/pub_sensor_status.py
+  scripts/move_set_server.py
+  scripts/camera_tran.py
+  scripts/motionDetector.py
+  scripts/faceDetector.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

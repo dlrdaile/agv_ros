@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="agv_nav" name="motion_detector" type="motionDetector.py" output="screen">
+        <remap from="input_rgb_image" to="/camera/right/image_raw" />
+        <rosparam>
+            minArea: 500
+            threshold: 25
+        </rosparam>
+    </node>
+</launch>

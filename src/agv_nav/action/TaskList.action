@@ -1,5 +1,5 @@
 geometry_msgs/PoseArray task_pose_list
-uint8[] move_id_set
+int8[] move_id_set
 uint8 start_goal
 ---
 time start_time

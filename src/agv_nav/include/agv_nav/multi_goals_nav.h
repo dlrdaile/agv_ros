@@ -67,7 +67,7 @@ namespace multi_goals_nav
         int curGoalIdx_ = 0, cycleCnt_ = 0;
         bool permit_ = false, cycle_ = false, arrived_ = false;
         geometry_msgs::PoseArray pose_array_;
-        vector<uint8_t> move_id_set_;
+        vector<int8_t> move_id_set_;
 
         actionlib_msgs::GoalID cur_goalid_;
 

@@ -3,6 +3,7 @@
     <node name="tele_cmd" pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" output="screen"/>
     <node name="car_cmd" pkg="control_car" type="demo_control" output="screen"/>
     <node name="sensor_status_node" pkg="agv_nav" type="pub_sensor_status.py" output="screen"/>
+    <node name="move_set_server" pkg="agv_nav" type="move_set_server.py" output="screen"/>
     <node name="initServer" pkg="control_car" type="initServer" output="screen">
         <rosparam command="load" file="$(find control_car)/config/initconfig.yaml"/>
     </node>

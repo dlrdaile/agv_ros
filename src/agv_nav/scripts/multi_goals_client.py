@@ -46,10 +46,11 @@ if __name__ == "__main__":
     goal_obj = TaskListGoal()
     goal_obj.task_pose_list.header.frame_id = "map"
     goal_obj.task_pose_list.header.stamp = rospy.Time.now()
-    x_list = [-0.10840559005737305,-6.501186847686768,0.19364643096923828]
-    y_list = [-2.869288921356201,-0.980682373046875,2.8268802165985107]
+    x_list = [12.89,0.18,]
+    y_list = [0.18,-0.980682373046875,2.8268802165985107]
     o_w_list = [0.009753267302542624,0.7535348182573167,0.9889068244024564]
-    o_z_list = [-0.999952435757284,0.6574079993990891,-0.14853717598718955]
+    o_z_list = [-13.98,0.6574079993990891,-0.14853717598718955]
+    goal_obj.move_id_set = [1,2,3]
     for i in range(len(x_list)):
         pose = Pose()
         pose.orientation.z = o_z_list[i]

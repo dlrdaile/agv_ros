@@ -1,0 +1,9 @@
+uint8 WAITING=0
+uint8 ACTIVE=1
+uint8 SUCCEEDED=2
+uint8 FAIL=3
+uint8 PAUSE=4
+string process_name
+string device_id
+bool current_task_iswork
+uint8 subtask_status

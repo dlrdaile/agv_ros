@@ -1,0 +1,13 @@
+<launch>
+    <node pkg="agv_nav" name="face_detector" type="faceDetector.py" output="screen">
+        <remap from="input_rgb_image" to="/camera/right/image_raw" />
+        <rosparam>
+            haar_scaleFactor: 1.2
+            haar_minNeighbors: 2
+            haar_minSize: 40
+            haar_maxSize: 60
+        </rosparam>
+        <param name="cascade_1" value="$(find agv_nav)/param/cv_data/face_detect/haarcascade_frontalface_alt.xml" />
+        <param name="cascade_2" value="$(find agv_nav)/param/cv_data/face_detect/haarcascade_profileface.xml" />
+    </node>
+</launch>

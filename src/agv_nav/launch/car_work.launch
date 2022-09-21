@@ -32,6 +32,7 @@
         <remap from="imu_data" to="imu"/>
         <remap from="odom" to="odom2ekf"/>
     </node>
+    <node name="multi_node_ctl" pkg="agv_nav" type="multi_goals_node" output="screen"/>
     <!-- 动态地图生成 -->
     <!-- <include file="$(find agv_nav)/launch/nav07_slam_auto_carto.launch"/> -->
     <!-- <include file="$(find agv_nav)/launch/nav06_slam_auto.launch"/> -->
